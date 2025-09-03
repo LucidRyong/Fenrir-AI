@@ -10,21 +10,24 @@ LOCATION = "us-central1"
 ENDPOINT_ID = "5973430069916336128"
 # --------------------
 
-# --- 2. 인증 및 리소스 로드 ---
+# --- 2. [최종 수정] 인증 및 모든 리소스 로드 ---
 @st.cache_resource
 def load_resources():
     credentials = None
+    # Streamlit Cloud 환경에서는 st.secrets를 통해 인증 정보를 가져옵니다.
     if hasattr(st, 'secrets') and "gcp_service_account" in st.secrets:
-        creds_dict = st.secrets["gcp_service_account"]
+        # [수정사항] secrets에서 가져온 텍스트(String)를 json.loads를 이용해 딕셔너리(Dictionary)로 변환합니다.
+        creds_info_str = st.secrets["gcp_service_account"]
+        creds_dict = json.loads(creds_info_str)
         credentials = google.oauth2.service_account.Credentials.from_service_account_info(creds_dict)
     
+    fenrir_model = None
     try:
         vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
         model_endpoint = f"projects/{PROJECT_ID}/locations/{LOCATION}/endpoints/{ENDPOINT_ID}"
         fenrir_model = GenerativeModel(model_endpoint)
     except Exception as e:
         st.error(f"모델 초기화 중 오류 발생: {e}")
-        fenrir_model = None
 
     concept_db = {}
     try:
