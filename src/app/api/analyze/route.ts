@@ -69,8 +69,15 @@ export async function POST(request: NextRequest) {
     // 결과 반환
     return NextResponse.json({ result: analysisResult });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error calling Vertex AI:', error);
+
+// error가 Error 인스턴스인지 확인 후 message에 접근합니다.
+    let errorMessage = 'An unknown error occurred.';
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+
     return NextResponse.json(
       { error: 'AI 분석 중 오류가 발생했습니다.', details: error.message },
       { status: 500 }
