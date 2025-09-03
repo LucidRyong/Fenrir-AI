@@ -58,7 +58,10 @@ export async function POST(request: NextRequest) {
 
     // AI 모델 호출
     const resp = await generativeModel.generateContent(prompt);
-    const analysisResult = resp.response.candidates[0].content.parts[0].text;
+    // [최종 수정] AI의 응답이 비어있을 가능성에 대비합니다.
+    // ?. 연산자는 각 단계에서 값이 undefined나 null이면 즉시 중단하고 undefined를 반환합니다.
+    const analysisResult = resp.response?.candidates?.[0]?.content?.parts?.[0]?.text || "AI로부터 유효한 답변을 받지 못했습니다.";
+
 
     // 결과 반환
     return NextResponse.json({ result: analysisResult });
