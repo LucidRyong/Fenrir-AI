@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'AI 분석 중 오류가 발생했습니다.', details: error.message },
+      { error: 'AI 분석 중 오류가 발생했습니다.', details: errorMessage },
       { status: 500 }
     );
   }
