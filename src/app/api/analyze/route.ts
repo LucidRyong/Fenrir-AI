@@ -19,23 +19,16 @@ export async function POST(request: NextRequest) {
     const projectId = process.env.GCP_PROJECT_ID;
     const location = process.env.GCP_LOCATION;
     const endpointId = process.env.GCP_ENDPOINT_ID;
-    const serviceAccountJson = process.env.GCP_SERVICE_ACCOUNT_CREDENTIALS;
 
     if (!projectId || !location || !endpointId || !serviceAccountJson) {
         throw new Error("필수 환경 변수가 설정되지 않았습니다.");
     }
     
-    // 서비스 계정 JSON 문자열을 파싱하여 credentials 객체를 생성합니다.
-    const credentials = JSON.parse(serviceAccountJson);
-
-    // Vertex AI 클라이언트 초기화
+      // [최종 수정] VertexAI 초기화가 매우 간단해집니다.
+    // GOOGLE_APPLICATION_CREDENTIALS 환경 변수가 있으면 자동으로 인증 정보를 읽습니다.
     const vertex_ai = new VertexAI({ 
         project: projectId, 
-        location: location,
-        credentials: {
-            client_email: credentials.client_email,
-            private_key: credentials.private_key
-        }
+        location: location
     });
 
     // 모델 엔드포인트 지정
