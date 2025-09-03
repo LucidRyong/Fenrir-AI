@@ -9,17 +9,28 @@ LOCATION = "us-central1"
 ENDPOINT_ID = "5973430069916336128"
 # --------------------
 
-# --- 2. 리소스 로드 (캐싱 사용) ---
+# --- 2. [최종 수정] 인증 및 모든 리소스 로드 ---
 @st.cache_resource
 def load_resources():
+    # --- 인증 정보 처리 ---
+    credentials = None
+    # Streamlit Cloud 환경에서는 st.secrets를 통해 인증 정보를 가져옵니다.
+    if hasattr(st, 'secrets') and "gcp_service_account" in st.secrets:
+        creds_dict = st.secrets["gcp_service_account"]
+        credentials = google.oauth2.service_account.Credentials.from_service_account_info(creds_dict)
+    # 로컬 환경에서는 기존의 gcloud auth 방식을 사용합니다.
+    
+    # --- 모델 로드 ---
+    fenrir_model = None
     try:
-        vertexai.init(project=PROJECT_ID, location=LOCATION)
+        vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
         model_endpoint = f"projects/{PROJECT_ID}/locations/{LOCATION}/endpoints/{ENDPOINT_ID}"
         fenrir_model = GenerativeModel(model_endpoint)
     except Exception as e:
         st.error(f"모델 초기화 중 오류 발생: {e}")
-        fenrir_model = None
 
+    # --- 개념 교과서 로드 ---
+    concept_db = {}
     try:
         with open('concepts_su1.json', 'r', encoding='utf-8') as f:
             concept_db_su1 = json.load(f)
@@ -27,8 +38,7 @@ def load_resources():
             concept_db_su2 = json.load(f)
         concept_db = {**concept_db_su1, **concept_db_su2}
     except Exception as e:
-        st.error(f"개념 교과서(concepts.json) 로드 중 오류 발생: {e}")
-        concept_db = {}
+        st.error(f"개념 교과서 로드 중 오류 발생: {e}")
         
     return fenrir_model, concept_db
 
