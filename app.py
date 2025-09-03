@@ -45,8 +45,9 @@ fenrir_model, concept_database = load_resources()
 
 # --- 3. UI 구성 ---
 st.set_page_config(layout="wide")
+st.set_page_config(page_title="Fenrir AI", page_icon="fenrir_ai_logo.png", layout="wide")
 st.title("🔥 Fenrir AI : The Hyper-Intelligent Personal Tutor")
-st.header("v3.1 - Final Architecture")
+st.header("v3.1")
 
 if not fenrir_model or not concept_database:
     st.error("핵심 리소스 로딩에 실패하여 프로토타입을 실행할 수 없습니다.")
