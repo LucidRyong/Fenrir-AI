@@ -2,7 +2,7 @@ import streamlit as st
 import vertexai
 from vertexai.generative_models import GenerativeModel
 import json
-import google.oauth2.service_account
+import google.oauth2.service_account # <-- [수정사항] 이 줄이 추가되었습니다.
 
 # --- 1. 설정 정보 ---
 PROJECT_ID = "fenrir-ai-project"
@@ -10,27 +10,22 @@ LOCATION = "us-central1"
 ENDPOINT_ID = "5973430069916336128"
 # --------------------
 
-# --- 2. [최종 수정] 인증 및 모든 리소스 로드 ---
+# --- 2. 인증 및 리소스 로드 ---
 @st.cache_resource
 def load_resources():
-    # --- 인증 정보 처리 ---
     credentials = None
-    # Streamlit Cloud 환경에서는 st.secrets를 통해 인증 정보를 가져옵니다.
     if hasattr(st, 'secrets') and "gcp_service_account" in st.secrets:
         creds_dict = st.secrets["gcp_service_account"]
         credentials = google.oauth2.service_account.Credentials.from_service_account_info(creds_dict)
-    # 로컬 환경에서는 기존의 gcloud auth 방식을 사용합니다.
     
-    # --- 모델 로드 ---
-    fenrir_model = None
     try:
         vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
         model_endpoint = f"projects/{PROJECT_ID}/locations/{LOCATION}/endpoints/{ENDPOINT_ID}"
         fenrir_model = GenerativeModel(model_endpoint)
     except Exception as e:
         st.error(f"모델 초기화 중 오류 발생: {e}")
+        fenrir_model = None
 
-    # --- 개념 교과서 로드 ---
     concept_db = {}
     try:
         with open('concepts_su1.json', 'r', encoding='utf-8') as f:
@@ -67,7 +62,6 @@ else:
         if st.button("분석 요청"):
             if problem_text_input and user_solution_input:
                 with st.spinner("Fenrir AI가 사용자의 풀이를 분석 중입니다... (1/2단계)"):
-                    # --- [최종 수정] 1단계 프롬프트 수정 ---
                     keyword_instruction = (
                         "당신은 최고의 수능 수학 전문가입니다. 당신의 첫 번째 임무는 주어진 문제와 학생의 풀이를 분석하는 것입니다.\n"
                         "1. 먼저, 주어진 문제를 당신 스스로 풀어보아 어떤 개념들이 필요한지 내적으로 파악하시오.\n"
@@ -86,7 +80,6 @@ else:
                         extracted_keywords = []
 
                 with st.spinner("Fenrir AI가 사용자의 풀이를 분석 중입니다... 거의 다 되었어요! (2/2단계)"):
-                    # --- 2단계 로직은 변경 없음 ---
                     retrieved_context = ""
                     if extracted_keywords:
                         context_list = ["### 참고 개념\n"]
@@ -96,7 +89,7 @@ else:
                         retrieved_context = "\n".join(context_list)
                     
                     final_instruction = (
-                        "당신은 세계 최고의 수능 수학 과외 선생님 'Fenrir AI'입니다. 당신은 단순한 채점기가 아니라, 학생의 사고 과정을 이해하고 성장을 돕는 지혜로운 튜터입니다.\n"
+                      "당신은 세계 최고의 수능 수학 과외 선생님 'Fenrir AI'입니다. 당신은 단순한 채점기가 아니라, 학생의 사고 과정을 이해하고 성장을 돕는 지혜로운 튜터입니다.\n"
                         "주어진 문제와 학생의 풀이 과정을 보고, 다음 규칙에 따라 피드백을 제공하시오.\n\n"
                         "1. 우선 학생이 제시한 문제를 보고 표준 풀이법과 **최적화 풀이법** 두 가지를 다 생각해 보시오. 그 이후 **출제자가 기대하는 접근법**을 생각하고 **출제자 의도 분석**을 해서 표준 풀이법에 비해 **최적화 풀이**가 왜 더 우수한지 **출제자 의도**를 추출하시오.\n"
                         "2. 학생의 풀이가 최종 정답에 도달했는지, 그리고 그 과정이 수학적으로 올바른지 논리적 오류가 없는지 확인하시오.\n"
