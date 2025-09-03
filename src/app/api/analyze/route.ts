@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
     const location = process.env.GCP_LOCATION;
     const endpointId = process.env.GCP_ENDPOINT_ID;
 
-    if (!projectId || !location || !endpointId || !serviceAccountJson) {
+  // [수정사항] 불필요한 serviceAccountJson 변수 확인 로직 삭제
+    if (!projectId || !location || !endpointId) {
         throw new Error("필수 환경 변수가 설정되지 않았습니다.");
     }
     
