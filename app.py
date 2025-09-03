@@ -2,6 +2,7 @@ import streamlit as st
 import vertexai
 from vertexai.generative_models import GenerativeModel
 import json
+import google.oauth2.service_account
 
 # --- 1. 설정 정보 ---
 PROJECT_ID = "fenrir-ai-project"
@@ -65,7 +66,7 @@ else:
 
         if st.button("분석 요청"):
             if problem_text_input and user_solution_input:
-                with st.spinner("Fenrir AI가 회장님의 풀이를 분석 중입니다... (1/2단계: 개념 추출)"):
+                with st.spinner("Fenrir AI가 사용자의 풀이를 분석 중입니다... (1/2단계)"):
                     # --- [최종 수정] 1단계 프롬프트 수정 ---
                     keyword_instruction = (
                         "당신은 최고의 수능 수학 전문가입니다. 당신의 첫 번째 임무는 주어진 문제와 학생의 풀이를 분석하는 것입니다.\n"
@@ -84,7 +85,7 @@ else:
                         st.warning("1단계: 개념 키워드를 추출하는 데 실패했습니다. 일반 분석을 시도합니다.")
                         extracted_keywords = []
 
-                with st.spinner("Fenrir AI가 회장님의 풀이를 분석 중입니다... (2/2단계: 최종 피드백 생성)"):
+                with st.spinner("Fenrir AI가 사용자의 풀이를 분석 중입니다... 거의 다 되었어요! (2/2단계)"):
                     # --- 2단계 로직은 변경 없음 ---
                     retrieved_context = ""
                     if extracted_keywords:
