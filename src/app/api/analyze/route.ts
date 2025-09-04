@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
     // 3. 이제 라이브러리에게 '임시 파일의 경로'를 알려줍니다.
     process.env.GOOGLE_APPLICATION_CREDENTIALS = tempCredentialsPath;
 
-
+// 요청 본문에서 문제와 풀이를 추출합니다.
+    const { problem, solution } = await request.json();
     
     if (!problem || !solution) {
       return NextResponse.json(
@@ -54,8 +55,7 @@ export async function POST(request: NextRequest) {
     const generativeModel = vertex_ai.getGenerativeModel({
       model: modelEndpoint,
     });
-// 요청 본문에서 문제와 풀이를 추출합니다.
-    const { problem, solution } = await request.json();
+
 
 
     // 최종 프롬프트 구성
