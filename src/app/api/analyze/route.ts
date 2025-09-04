@@ -1,24 +1,40 @@
 // 파일 경로: src/app/api/analyze/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { VertexAI } from '@google-cloud/vertexai';
+import fs from 'fs'; // 파일 시스템 모듈 import
+import os from 'os'; // 운영체제 모듈 import
+import path from 'path'; // 경로 모듈 import
+
 
 // POST 요청을 처리하는 함수
 export async function POST(request: NextRequest) {
+// 임시 파일 경로를 미리 지정 (파일이 겹치지 않도록 고유한 이름 사용)
+  const tempCredentialsPath = path.join(os.tmpdir(), `gcp-creds-${Date.now()}.json`);
   try {
+
+ // 1. Vercel 환경 변수에서 인증 정보 '내용'을 가져옵니다.
+    const creds_str = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    if (!creds_str) {
+      throw new Error("GOOGLE_APPLICATION_CREDENTIALS 환경 변수가 Vercel에 설정되지 않았습니다.");
+    }
 
 
    if (!process.env.GCP_PROJECT_ID || !process.env.GCP_LOCATION || !process.env.GCP_ENDPOINT_ID || !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
       throw new Error("하나 이상의 필수 환경 변수가 Vercel에 설정되지 않았습니다.");
     }
+// 2. 가져온 내용으로 서버에 '임시 인증서 파일'을 생성합니다.
+    fs.writeFileSync(tempCredentialsPath, creds_str);
 
-    // 요청 본문에서 문제와 풀이를 추출합니다.
-    const { problem, solution } = await request.json();
+    // 3. 이제 라이브러리에게 '임시 파일의 경로'를 알려줍니다.
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = tempCredentialsPath;
 
+
+    
     if (!problem || !solution) {
       return NextResponse.json(
         { error: '문제와 풀이 내용이 필요합니다.' },
         { status: 400 }
-      );
+      );	
     }
        const projectId = process.env.GCP_PROJECT_ID;
        const location = process.env.GCP_LOCATION;
@@ -38,6 +54,9 @@ export async function POST(request: NextRequest) {
     const generativeModel = vertex_ai.getGenerativeModel({
       model: modelEndpoint,
     });
+// 요청 본문에서 문제와 풀이를 추출합니다.
+    const { problem, solution } = await request.json();
+
 
     // 최종 프롬프트 구성
     const instruction =  "당신은 세계 최고의 수능 수학 과외 선생님 'Fenrir AI'입니다. 당신은 단순한 채점기가 아니라, 학생의 사고 과정을 이해하고 성장을 돕는 지혜로운 튜터입니다.\n" +
@@ -80,5 +99,10 @@ export async function POST(request: NextRequest) {
       { error: 'AI 분석 중 오류가 발생했습니다.', details: errorMessage },
       { status: 500 }
     );
+  } finally {
+    // 4. 요청 처리가 끝나면, 보안을 위해 '임시 파일'을 반드시 삭제합니다.
+    if (fs.existsSync(tempCredentialsPath)) {
+      fs.unlinkSync(tempCredentialsPath);
+    }
   }
 }
