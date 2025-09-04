@@ -52,7 +52,7 @@ const handleAnalysisRequest = async () => {
     <main className="bg-gray-900 text-white min-h-screen p-8 font-sans">
       <div className="text-center mb-10">
         <h1 className="text-4xl font-bold">
-          🔥 Fenrir AI : The Hyper-Intelligent Personal Tutor
+           Fenrir AI : Hyper-Intelligent Personal Tutor
         </h1>
         <p className="text-lg text-gray-400 mt-2">
           v2.0
