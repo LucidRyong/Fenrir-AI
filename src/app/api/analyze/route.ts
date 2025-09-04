@@ -5,6 +5,12 @@ import { VertexAI } from '@google-cloud/vertexai';
 // POST 요청을 처리하는 함수
 export async function POST(request: NextRequest) {
   try {
+
+
+   if (!process.env.GCP_PROJECT_ID || !process.env.GCP_LOCATION || !process.env.GCP_ENDPOINT_ID || !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      throw new Error("하나 이상의 필수 환경 변수가 Vercel에 설정되지 않았습니다.");
+    }
+
     // 요청 본문에서 문제와 풀이를 추출합니다.
     const { problem, solution } = await request.json();
 
@@ -15,28 +21,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vercel 환경 변수에서 인증 정보를 가져옵니다.
-    const projectId = process.env.GCP_PROJECT_ID;
-    const location = process.env.GCP_LOCATION;
-    const endpointId = process.env.GCP_ENDPOINT_ID;
-    const creds_str = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+       const endpointId = process.env.GCP_ENDPOINT_ID;
+    
 
- if (!projectId || !location || !endpointId || !creds_str) {
-      throw new Error("하나 이상의 필수 환경 변수가 Vercel에 설정되지 않았습니다.");
-    }
 
- // 2. 환경 변수 문자열을 JSON 객체로 직접 파싱합니다.
-    const creds_json = JSON.parse(creds_str);
-      // 3. VertexAI 클라이언트를 '수동'으로 초기화합니다.
-    //    인증 정보를 명확하게 전달하여 자동 인식의 오류를 방지합니다.
+ // [수정된 부분] VertexAI는 GOOGLE_APPLICATION_CREDENTIALS 환경 변수를 자동으로 감지하여 인증합니다.
+    // 따라서 수동으로 credentials 객체를 전달할 필요가 없습니다.
     const vertex_ai = new VertexAI({
-      project: projectId,
-      location: location,
-      credentials: {
-        client_email: creds_json.client_email,
-        // private_key의 '\n' 문자를 실제 줄바꿈으로 복원합니다.
-        private_key: creds_json.private_key.replace(/\\n/g, '\n'),
-      }
+      project: process.env.GCP_PROJECT_ID,
+      location: process.env.GCP_LOCATION,
     });
 
     // 모델 엔드포인트 지정
