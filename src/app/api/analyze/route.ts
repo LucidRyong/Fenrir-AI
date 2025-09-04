@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
+       const projectId = process.env.GCP_PROJECT_ID;
+       const location = process.env.GCP_LOCATION;
        const endpointId = process.env.GCP_ENDPOINT_ID;
     
 
