@@ -15,10 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Fenrir AI",
   description: "초지능 개인 맞춤 튜터, Fenrir AI입니다.",
-  icons: {
-    icon: "/logo.svg", // 기본 파비콘
-    apple: "/logo.svg", // 애플 기기용 아이콘
-  },
+  
 };
 
 export default function RootLayout({
